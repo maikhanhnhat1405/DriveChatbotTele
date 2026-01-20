@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"os"
 	"time"
-
+	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/drive/v3"
@@ -18,22 +18,23 @@ import (
 
 // --- TRẠM 4.2: HÀM GỬI TIN NHẮN TELEGRAM ---
 func sendTelegramAlert(message string) {
-	botToken := "8546626911:AAFM8CPgiIvdtYIm5NCrH7VodjMuhoTujmg"
-	chatID := "7388469205"
-	
-	// Mã hóa tin nhắn để tránh lỗi ký tự đặc biệt
-	escapedMessage := url.QueryEscape(message)
-	apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s",
-		botToken, chatID, escapedMessage)
+    // Tải file .env lên bộ nhớ
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Lỗi tải file .env")
+    }
 
-	_, err := http.Get(apiURL)
-	if err != nil {
-		fmt.Printf("Lỗi gửi Telegram: %v\n", err)
-		return
-	}
-	fmt.Printf("[%s] -> Đã gửi thông báo tới Telegram thành công!\n", time.Now().Format("15:04:05"))
+    // Đọc biến môi trường thay vì viết cứng
+    botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
+    chatID := os.Getenv("TELEGRAM_CHAT_ID")
+
+    escapedMessage := url.QueryEscape(message)
+    apiURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s", 
+        botToken, chatID, escapedMessage)
+    
+    http.Get(apiURL)
+    fmt.Println("Đã gửi tin nhắn bằng biến môi trường!")
 }
-
 // --- TRẠM 1 & 2: CÁC HÀM XỬ LÝ TOKEN (CHÌA KHÓA) ---
 
 // Đọc token từ file token.json
